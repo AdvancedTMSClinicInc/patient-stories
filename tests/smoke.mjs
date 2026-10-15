@@ -276,6 +276,11 @@ main()
     console.log(steps.join("\n"));
     console.error("\nSmoke test failed:", e);
     console.error("\n--- server log ---\n" + serverLog.slice(-4000));
+    if (process.env.GITHUB_ACTIONS) {
+      // Surface the details as a check annotation as well as in the log.
+      const esc = (s) => String(s).replace(/%/g, "%25").replace(/\r/g, "").replace(/\n/g, "%0A");
+      console.log(`::error title=Smoke test failed::${esc(steps.join("\n") + "\n\n" + (e?.stack ?? e) + "\n\nSERVER LOG:\n" + serverLog.slice(-3000))}`);
+    }
     process.exitCode = 1;
   })
   .finally(() => {
