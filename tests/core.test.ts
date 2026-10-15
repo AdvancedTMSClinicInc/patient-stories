@@ -228,6 +228,22 @@ test("follow-up text is generic and points to the 855 line", () => {
   assert.equal(db.reminders.length, 1);
 });
 
+test("uploads must look like real video files", async () => {
+  const { looksLikeVideo } = await import("../lib/upload");
+  const webm = Buffer.from([0x1a, 0x45, 0xdf, 0xa3, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const mp4 = Buffer.concat([Buffer.from([0, 0, 0, 0x20]), Buffer.from("ftypisom"), Buffer.alloc(4)]);
+  assert.equal(looksLikeVideo(webm), true);
+  assert.equal(looksLikeVideo(mp4), true);
+  assert.equal(looksLikeVideo(Buffer.from("<script>alert(1)</script>")), false);
+});
+
+test("each role lands on a page it can open", async () => {
+  const { homeFor } = await import("../lib/staffnav");
+  assert.equal(homeFor({ role: "MARKETING_REVIEWER" }), "/staff/queue");
+  assert.equal(homeFor({ role: "CLINIC_STAFF" }), "/staff/invitations");
+  assert.equal(homeFor({ role: "AUDITOR" }), "/staff/audit");
+});
+
 test("JSON store seeds on first read and persists changes", async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ps-"));
   process.env.DATA_DIR = dir;
