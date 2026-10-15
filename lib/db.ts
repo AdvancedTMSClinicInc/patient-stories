@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { DB } from "./types";
 import { buildSeed } from "./seed";
+import { sampleLoginAllowed } from "./flags";
 
 // PROTOTYPE STORE: one JSON file on local disk, sample data only.
 // Phase 2 replaces this module with PostgreSQL (row-level security, encryption
@@ -22,7 +23,10 @@ function ensureDb(): void {
   fs.mkdirSync(dataDir(), { recursive: true });
   const { db, devInvites } = buildSeed(new Date());
   writeAtomic(file, JSON.stringify(db, null, 2));
-  writeAtomic(path.join(dataDir(), "dev-invites.json"), JSON.stringify(devInvites, null, 2));
+  // Plain-text sample links and codes are kept only where sample sign-in is allowed.
+  if (sampleLoginAllowed()) {
+    writeAtomic(path.join(dataDir(), "dev-invites.json"), JSON.stringify(devInvites, null, 2));
+  }
 }
 
 function writeAtomic(file: string, contents: string): void {

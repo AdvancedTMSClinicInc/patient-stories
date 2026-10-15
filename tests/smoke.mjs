@@ -61,6 +61,8 @@ async function main() {
   await step("home page renders and seeds sample data", async () => {
     const r = await req("/");
     assert.equal(r.status, 200);
+    // The home page is static; the first page that reads data creates the sample data.
+    assert.equal((await req("/staff/login")).status, 200);
     invites = JSON.parse(fs.readFileSync(path.join(dataDir, "dev-invites.json"), "utf8"));
     assert.equal(invites.length, 6);
   });

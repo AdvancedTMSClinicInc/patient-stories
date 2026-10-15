@@ -5,6 +5,7 @@ import { inScope } from "@/lib/rbac";
 import { isValidDay } from "@/lib/dates";
 import { PROTOCOL_LABELS, SERVICE_LABELS, type InvitePurpose, type ProtocolCode, type ServiceCode } from "@/lib/types";
 import { handle, json, readJson, staffOr401 } from "@/lib/http";
+import { sampleLoginAllowed } from "@/lib/flags";
 
 export async function POST(req: Request) {
   return handle(async () => {
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
       return { r, facility: db.facilities.find((f) => f.id === location.facilityId)!.name, location: location.name };
     });
     const path = `/i/${result.r.token}`;
-    if (process.env.NODE_ENV !== "production") {
+    if (sampleLoginAllowed()) {
       appendDevInvite({ patient: `${firstName} ${lastName}`, facility: result.facility, location: result.location, plan: PROTOCOL_LABELS[protocol], path, code: result.r.code });
     }
     return json({ ok: true, path, code: result.r.code, expiresAt: result.r.invitation.expiresAt });
