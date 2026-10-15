@@ -34,6 +34,12 @@ async function req(p, { method = "GET", cookie = "", json, body, headers = {}, r
   return fetch(BASE + p, { method, headers: h, body: payload, redirect });
 }
 
+async function page(p, opts) {
+  const r = await req(p, opts);
+  // React separates adjacent text with <!-- --> markers; strip them before matching.
+  return (await r.text()).replace(/<!-- -->/g, "");
+}
+
 const steps = [];
 async function step(name, fn) {
   try {
@@ -100,7 +106,7 @@ async function main() {
   });
 
   await step("welcome page shows the patient's details", async () => {
-    const html = await (await req("/p", { cookie: pc })).text();
+    const html = await page("/p", { cookie: pc });
     assert.match(html, /Hi Jordan/);
     assert.match(html, /Santee/);
     assert.match(html, /advanced-tms\.png/);
@@ -140,7 +146,7 @@ async function main() {
   });
 
   await step("thank-you page shows the Santee Google review link", async () => {
-    const html = await (await req("/p/thanks", { cookie: pc })).text();
+    const html = await page("/p/thanks", { cookie: pc });
     assert.match(html, /g\.page\/r\/CUhBp4jzSifYEAE\/review/);
   });
 
@@ -149,7 +155,7 @@ async function main() {
       const r = await req(p, { cookie: pc });
       assert.equal(r.status, 200, `${p} -> ${r.status}`);
     }
-    const tl = await (await req("/p/timeline", { cookie: pc })).text();
+    const tl = await page("/p/timeline", { cookie: pc });
     assert.match(tl, /Standard TMS · session 18 of 36/);
   });
 
@@ -170,7 +176,7 @@ async function main() {
   let mk = "";
   await step("marketing reviewer sees the video in the queue", async () => {
     mk = await login("staff-marketing");
-    const html = await (await req("/staff/queue", { cookie: mk })).text();
+    const html = await page("/staff/queue", { cookie: mk });
     assert.match(html, /Jordan S\./);
   });
 
@@ -204,16 +210,16 @@ async function main() {
     assert.equal(r.status, 200);
     assert.equal((await req(`/api/staff/export/${testimonialId}`, { cookie: mk })).status, 409);
     const po = await login("staff-privacy");
-    const html = await (await req("/staff/authorizations", { cookie: po })).text();
+    const html = await page("/staff/authorizations", { cookie: po });
     assert.match(html, /Takedown open/);
   });
 
   await step("clinic staff (Advanced TMS only) see only their facility", async () => {
     const cs = await login("staff-clinic-atms");
-    const inv = await (await req("/staff/invitations", { cookie: cs })).text();
+    const inv = await page("/staff/invitations", { cookie: cs });
     assert.match(inv, /Jordan/);
     assert.doesNotMatch(inv, /Maria Sample/);
-    const flags = await (await req("/staff/flags", { cookie: cs })).text();
+    const flags = await page("/staff/flags", { cookie: cs });
     assert.match(flags, /want to die/);
   });
 
@@ -238,7 +244,7 @@ async function main() {
 
   await step("12-week follow-up is due for the finished patient and sends in test mode", async () => {
     const cs = await login("staff-clinic-atms");
-    const html = await (await req("/staff/followups", { cookie: cs })).text();
+    const html = await page("/staff/followups", { cookie: cs });
     assert.match(html, /Taylor/);
     assert.match(html, /ILUV-TMS/);
     const db = JSON.parse(fs.readFileSync(path.join(dataDir, "db.json"), "utf8"));
@@ -258,7 +264,7 @@ async function main() {
 
   await step("auditor sees an intact audit chain", async () => {
     const au = await login("staff-auditor");
-    const html = await (await req("/staff/audit", { cookie: au })).text();
+    const html = await page("/staff/audit", { cookie: au });
     assert.match(html, /Chain verified/);
     assert.equal((await req("/staff/queue", { cookie: au })).status, 307);
   });
