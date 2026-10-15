@@ -1,0 +1,29 @@
+{
+  "name": "patient-stories",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Patient testimonial, treatment journal and staff review app for Advanced TMS Clinic Inc and Pacific Health Systems LP. Prototype: sample data only.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "reset-data": "node -e \"require('fs').rmSync('data',{recursive:true,force:true});console.log('Sample data cleared. It is recreated on next start.')\""
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "dependencies": {
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
